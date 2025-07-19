@@ -38,13 +38,33 @@ try {
 
         case 'sendgrid':
             $mail->isSMTP();
-            $mail->Host       = 'smtp.sendgrid.net';
+            $mail->Host       = getenv('SENDGRID_SMTP_HOST');
             $mail->SMTPAuth   = true;
             $mail->Username   = 'apikey';
             $mail->Password   = getenv('SENDGRID_API_KEY');
             $mail->SMTPSecure = 'tls';
-            $mail->Port       = 587;
+            $mail->Port       = getenv('SENDGRID_SMTP_PORT');
             $mail->setFrom(getenv('SENDGRID_FROM'), getenv('SENDGRID_FROM_NAME'));
+            break;
+        case 'ses':
+            $mail->isSMTP();
+            $mail->Host       = getenv('SES_SMTP_HOST');
+            $mail->SMTPAuth   = true;
+            $mail->Username   = getenv('SES_SMTP_USERNAME');
+            $mail->Password   = getenv('SES_SMTP_PASSWORD');
+            $mail->SMTPSecure = 'tls';
+            $mail->Port       = getenv('SES_SMTP_PORT');
+            $mail->setFrom(getenv('SES_FROM'), getenv('SES_FROM_NAME'));
+            break;
+        case 'mailgun':
+            $mail->isSMTP();
+            $mail->Host       = getenv('MAILGUN_SMTP_HOST');
+            $mail->SMTPAuth   = true;
+            $mail->Username   = getenv('MAILGUN_SMTP_USERNAME');
+            $mail->Password   = getenv('MAILGUN_SMTP_PASSWORD');
+            $mail->SMTPSecure = 'tls';
+            $mail->Port       = getenv('MAILGUN_SMTP_PORT');
+            $mail->setFrom(getenv('MAILGUN_SMTP_USERNAME'), 'Mailgun Sandbox');
             break;
         default:
             throw new Exception("Unsupported email provider selected.");
