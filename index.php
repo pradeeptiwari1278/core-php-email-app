@@ -75,16 +75,6 @@
     <h3 class="mb-4">📧 Send Email</h3>
     <form id="emailForm" enctype="multipart/form-data">
 
-      <!-- FROM -->
-      <div class="mb-3">
-        <label class="form-label">From</label>
-        <div class="recipient-row">
-          <input type="text" class="form-control" name="from_name" placeholder="Your Name">
-          <input type="email" class="form-control" name="from" placeholder="Your Email" required>
-          <button type="button" class="remove-btn invisible" tabindex="-1">&times;</button>
-        </div>
-      </div>
-
       <!-- SUBJECT -->
       <div class="mb-3">
         <label class="form-label">Subject</label>
@@ -124,6 +114,18 @@
         <input type="file" class="form-control" name="attachment">
       </div>
 
+      <!-- Email Provider -->
+      <div class="mb-3">
+        <label class="form-label">Send With</label>
+        <select class="form-select" name="provider" required>
+          <option value="gmail" selected>Gmail SMTP</option>
+          <option value="sendgrid">SendGrid</option>
+          <option value="mailgun">Mailgun</option>
+          <option value="ses">Amazon SES</option>
+          <!-- Add more as needed -->
+        </select>
+      </div>
+
       <!-- SUBMIT BUTTON -->
       <button type="submit" id="sendBtn" class="btn btn-primary">
         <span id="btnText">Send Email</span>
@@ -158,21 +160,22 @@
 
       function processLastRow() {
         const rows = group.querySelectorAll('.recipient-row');
-        const lastRow = rows[rows.length - 1];
-        if (!lastRow || lastRow.classList.contains('submitted')) return;
+        const validEntries = [];
 
-        const nameInput = lastRow.querySelector('input[type="text"]');
-        const emailInput = lastRow.querySelector('input[type="email"]');
-        const nameVal = nameInput.value.trim();
-        const emailVal = emailInput.value.trim();
-        const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
+        rows.forEach(row => {
+          const nameInput = row.querySelector('input[type="text"]');
+          const emailInput = row.querySelector('input[type="email"]');
+          const nameVal = nameInput.value.trim();
+          const emailVal = emailInput.value.trim();
+          const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
 
-        if (emailVal && isValidEmail) {
-          lastRow.classList.add('submitted');
-          const entry = nameVal ? `${nameVal}<${emailVal}>` : emailVal;
-          entries.push(entry);
-          updateHiddenInput();
-        }
+          if (emailVal && isValidEmail) {
+            const entry = nameVal ? `${nameVal}<${emailVal}>` : emailVal;
+            validEntries.push(entry);
+          }
+        });
+
+        hiddenInput.value = validEntries.join(',');
       }
 
       function renderRow(name = '', email = '') {
@@ -214,7 +217,7 @@
           }
         }
 
-        emailInput.addEventListener('keydown', function (e) {
+        emailInput.addEventListener('keydown', function(e) {
           if (['Enter', ' '].includes(e.key)) {
             e.preventDefault();
             addNextIfFilled();
@@ -228,17 +231,17 @@
       }
 
       renderRow();
-      return processLastRow; // Return to call on submit
+      return processLastRow;
     }
 
     const processTo = setupRecipientGroup('to-group', 'to');
     const processCc = setupRecipientGroup('cc-group', 'cc');
     const processBcc = setupRecipientGroup('bcc-group', 'bcc');
 
-    document.getElementById('emailForm').addEventListener('submit', function (e) {
+    document.getElementById('emailForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
-      // 💡 Add the last entered emails before sending
+      // Process dynamic recipients before submit
       processTo();
       processCc();
       processBcc();
@@ -254,9 +257,9 @@
       btnLoader.classList.remove('d-none');
 
       fetch('send.php', {
-        method: 'POST',
-        body: formData
-      })
+          method: 'POST',
+          body: formData
+        })
         .then(res => res.text())
         .then(data => {
           if (data.toLowerCase().includes('error')) {
@@ -265,7 +268,6 @@
             showAlert(data, 'success');
             form.reset();
             document.querySelectorAll('.email-group').forEach(group => group.innerHTML = '');
-            // Reset input groups
             setupRecipientGroup('to-group', 'to');
             setupRecipientGroup('cc-group', 'cc');
             setupRecipientGroup('bcc-group', 'bcc');
