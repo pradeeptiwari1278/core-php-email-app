@@ -1,0 +1,17 @@
+# Environment files
+.env
+
+# Log files
+*.log
+
+# Cache
+cache/
+storage/
+vendor/
+
+# Composer dependencies
+/vendor
+
+# IDE settings
+.vscode/
+.idea/
